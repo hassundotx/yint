@@ -5,10 +5,9 @@
 /-  yint
 /+  yint-all, yint-db, yint-match, yint-util
 [[. yint-util] match=yint-match]
-!:
-|_  a/all:yint
+|_  a=all:yint
 ++  look-room
-  |=  {player/@sd loc/@sd}
+  |=  [player=@sd loc=@sd]
   ^-  all:yint
   =+  record=(~(got yint-db db.a) loc)
   =.  a
@@ -25,7 +24,7 @@
   (look-contents player loc "Contents:")
 
 ++  do-look-at
-  |=  name/tape
+  |=  name=tape
   ^-  all:yint
   =+  player=(need player.a)
   ?:  =("" name)
@@ -52,7 +51,7 @@
   (look-simple player thing)
 
 ++  get-thing-to-examine
-  |=  {player/@sd name/tape}
+  |=  [player=@sd name=tape]
   =+  thing=location:(~(got yint-db db.a) player)
   ?~  name
     [thing a]
@@ -69,7 +68,7 @@
   ~(noisy-match-result yint-match matcher)
 
 ++  do-examine
-  |=  {player/@sd name/tape}
+  |=  [player=@sd name=tape]
   ^-  all:yint
   =^  thing  a  (get-thing-to-examine player name)
   ?:  =(thing nothing:yint)
@@ -123,7 +122,7 @@
   a
 
 ++  examine-room
-  |=  {player/@sd r/record:yint}
+  |=  [player=@sd r=record:yint]
   ^-  all:yint
   =.  a
     ?:  =(exits:r nothing:yint)
@@ -142,7 +141,7 @@
   a
 
 ++  examine-thing
-  |=  {player/@sd r/record:yint}
+  |=  [player=@sd r=record:yint]
   ^-  all:yint
   =+  home=(getname exits:r a)
   =+  home-num=(print-ref exits:r)
@@ -159,7 +158,7 @@
   a
 
 ++  examine-exit
-  |=  {player/@sd r/record:yint}
+  |=  [player=@sd r=record:yint]
   ^-  all:yint
   ?:  =(location:r nothing:yint)
     (queue-phrase 'dest-home' a)
@@ -172,7 +171,7 @@
   (queue-phrase-with 'carried-by' [n ref ~] a)  
 
 ++  do-score
-  |=  player/@sd
+  |=  player=@sd
   ^-  all:yint
   =+  count=pennies:(~(got yint-db db.a) player)
   ?:  =(--1 count)
@@ -180,7 +179,7 @@
   (queue-phrase-with 'you-have-pennies' [(scow %ud (abs:si count)) ~] a)
 
 ++  do-inventory
-  |=  player/@sd
+  |=  player=@sd
   ^-  all:yint
   =+  thing=contents:(~(got yint-db db.a) player)
   ?:  =(thing nothing:yint)
@@ -197,18 +196,18 @@
 ::  todo: do-find
 
 ++  look-contents
-  |=  {player/@sd loc/@sd contents-name/tape}
+  |=  [player=@sd loc=@sd contents-name=tape]
   ^-  all:yint
-  =/  can-see-loc/?  ?|
+  =/  can-see-loc=?  ?|
     !(~(is-dark yint-db db.a) loc)
     (~(controls yint-db db.a) player loc)
   ==
   =+  c=contents:(~(got yint-db db.a) loc)
-  =/  things/(list @sd)  (~(enum yint-db db.a) c)
-  =/  can-see-something/?
+  =/  things=(list @sd)  (~(enum yint-db db.a) c)
+  =/  can-see-something=?
     %+  lien
       things
-      |=(thing/@sd (~(can-see yint-db db.a) player thing can-see-loc))
+      |=(thing=@sd (~(can-see yint-db db.a) player thing can-see-loc))
   ?.  can-see-something
     a
   :: something exists! show them everything
@@ -223,7 +222,7 @@
   $(things t.things)
 
 ++  notify-name
-  |=  {player/@sd thing/@sd}
+  |=  [player=@sd thing=@sd]
   ^-  all:yint
   =+  n=(getname thing a)
   ?:  (~(controls yint-db db.a) player thing)
@@ -232,7 +231,7 @@
   (queue n a)
 
 ++  look-simple
-  |=  {player/@sd thing/@sd}
+  |=  [player=@sd thing=@sd]
   ^-  all:yint
   =+  desc=description:(~(got yint-db db.a) thing)
   ?:  =("" desc)
@@ -240,7 +239,7 @@
   (queue desc a)
 
 ++  flag-description
-  |=  thing/@sd
+  |=  thing=@sd
   ^-  tape
   =+  type=(~(typeof yint-db db.a) thing)
   =/  type-tape

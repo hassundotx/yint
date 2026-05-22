@@ -6,21 +6,20 @@
 /-    yint
 /+    sole, yint-create, yint-db, yint-look, yint-help, yint-move, yint-set, yint-speech, yint-util
 [. sole yint-util]
-!:
 |%
 ++  move  (pair bone card)                          ::  all actions
 ++  card
-  $%  {$diff $sole-effect sole-effect}              ::  todo: more cards later
-      {$info wire @p @tas nori}                     ::  write to fs
+  $%  [%diff $sole-effect sole-effect]              ::  todo: more cards later
+      [%info wire @p @tas nori]                     ::  write to fs
   ==
 ::  A list of all commands
 ++  command-entry
-  $:  name/tape
-      c/$-({a/all:yint c/command:yint} a/all:yint)
-      full-match/?
+  $:  name=tape
+      c=$-([a=all:yint c=command:yint] a=all:yint)
+      full-match=?
   ==
 ++  commands
-  =+  args={a/all:yint c/command:yint}
+  =+  args=[a=all:yint c=command:yint]
   ^-  (list command-entry)
   %-  limo  :~
      ["@chown" |=(args (~(do-chown yint-set a) (need player.a) arg1.c arg2.c)) %.n]
@@ -55,13 +54,13 @@
   ==
 :: A door which takes a
 ++  user-state
-  |_  a/all:yint
+  |_  a=all:yint
   :: Parses a command into a 3-tuple. The command goes in command/ and usually
   :: the rest is placed into arg1/. For commands which take an x=y argument, x
   :: is set to arg1/ and y to arg2/.
   ++  parse-command
     :: TODO: Strip leading and trailing whitespace.
-    |=  in/tape
+    |=  in=tape
     ^-  command:yint
     =+  f=(find " " in)
     ?~  f
@@ -76,7 +75,7 @@
     =+  arg2=(trim (add 1 (need equals)) q.rhs)
     [command p.arg1 q.arg2]
   ++  process-line
-    |=  in/tape
+    |=  in=tape
     ^-  all:yint
     =.  a  (queue-styx [[[`%br ~ ~] "> "] [[~ ~ ~] in] ~] a)
     :: TODO: eat leading/trailing whitespace on |in|.
@@ -93,8 +92,8 @@
     =+  parsed=(parse-command in)
     ::  Make a list of candidates that start with the types command (case insensitive)
     =+  lower-command=(cass command.parsed)
-    =+  matcher=|=(e/command-entry =([~ 0] (find lower-command name.e)))
-    =/  candidates/(list command-entry)  (skim commands matcher)
+    =+  matcher=|=(e=command-entry =([~ 0] (find lower-command name.e)))
+    =/  candidates=(list command-entry)  (skim commands matcher)
     ?~  candidates
       (queue-phrase 'huh' a)
     ::  We should only have one candidate; otherwise the player input is ambigious.
@@ -107,12 +106,12 @@
   --
 :: A door which takes a 
 ++  login-state
-  |_  a/all:yint
+  |_  a=all:yint
 
   :: Parses a line into a triple.
   :: todo: this can be replaced by split when there's a string library.
   ++  parse-line
-    |=  in/tape
+    |=  in=tape
     ^-  command:yint
     =+  f=(find " " in)
     ?~  f
@@ -130,7 +129,7 @@
     [command p.arg1 q.arg2]
   :: Returns a player id if name/password valid.
   ++  connect-player
-    |=  {name/tape password/tape}
+    |=  [name=tape password=tape]
     ^-  @sd
     =+  player-id=(~(lookup-player yint-db db.a) name)
     ?:  =(player-id nothing:yint)
@@ -141,7 +140,7 @@
     nothing:yint
   :: Main entrypoint for processing lines when the user is not logged in.
   ++  process-line
-    |=  in/tape
+    |=  in=tape
     ^-  all:yint
     =+  parsed=(parse-line in)
     ?:  =("create" command.parsed)
@@ -163,13 +162,13 @@
     (queue-phrase 'welcome-message' a)
   --
 --
-|_  $:  bow/bowl
+|_  $:  bow=bowl
         :: terminal information for |link
-        sos/(map bone sole-share)
-        w/world:yint
+        sos=(map bone sole-share)
+        w=world:yint
     ==
 ++  prompt-for
-  |=  p/bone
+  |=  p=bone
   ^-  sole-effect
   =+  x=(~(get by logged-in.w) p)
   ?~  x
@@ -183,7 +182,7 @@
   [%pro [& %test [[[~ ~ ~] "("] [[`%un ~ ~] name.player-record] [[~ ~ ~] ")> "] ~]]]
 :: Called after a process line to change the login state.
 ++  update-world
-  |=  {old-id/(unit @sd) a/all:yint}
+  |=  [old-id=(unit @sd) a=all:yint]
   ^-  world:yint
   ?~  old-id
     ?~  player.a
@@ -201,16 +200,16 @@
   -.a      :: no change
 ::
 ++  build-notification
-  |=  {p/@sd q/(list sole-effect:sole)}
+  |=  [p=@sd q=(list sole-effect:sole)]
   ^-  (list move)
   =+  b=(~(get by player-out.w) p)                  ::  ensure player logged in
   ?~  b
     ~
   [i=[(need b) %diff %sole-effect mor+q] t=~]
 ++  make-notification-list
-  |=  a/(map @sd (list sole-effect:sole))
+  |=  a=(map @sd (list sole-effect:sole))
   ^-  (list move)
-  =|  out/(list move)
+  =|  out=(list move)
   ?~  a
     ~
   :(welp (build-notification p.n.a q.n.a) (make-notification-list l.a) (make-notification-list r.a))
@@ -223,21 +222,21 @@
 ::
 ++  poke
   |=  *
-  ^-  {(list move) _+>.$}
+  ^-  [(list move) _+>.$]
   =+  ost=p.,:(head (prey /sole bow))
   [[ost %diff %sole-effect %txt "foo"]~ +>.$]
 ::
 ++  poke-sole-action
-  |=  act/sole-action
-  ^-  {(list move) _+>.$}
+  |=  act=sole-action
+  ^-  [(list move) _+>.$]
   =/  som  (~(got by sos) ost.bow)
   ?-  act
-    {$det *}
+    [%det *]
       :: Minimal parsing to get a command in the buffer.
       =^  inv  som  (~(transceive sole som) +.act)
       =.  sos  (~(put by sos) ost.bow som)
       [[~] +>.$]
-    {$ret *}
+    [%ret *]
       =+  command=(tufa buf.som)
       =+  player-id=(~(got by logged-in.w) ost.bow)
       =+  num=(~(raw og eny.bow) 0xff)
@@ -251,24 +250,24 @@
       =+  msgs=[i=(prompt-for ost.bow) t=(flop messages.all)]
       =+  notifications=(make-notification-list notifications.all)
       :: todo: syslog should go to a local talk channel?
-      =+  todo-syslog=(turn (flop syslog.all) |=(m/tape ~&([%log m] 0)))
+      =+  todo-syslog=(turn (flop syslog.all) |=(m=tape ~&([%log m] 0)))
       ::  Maintain the typing state.
       =/  som  (~(got by sos) ost.bow)
       =^  det  som  (~(transmit sole som) set+~)
       =.  sos  (~(put by sos) ost.bow som)
       :_  +>.$
       [i=[ost.bow %diff %sole-effect mor+[det+det msgs]] t=notifications]
-    {$clr *}
+    [%clr *]
       [[[ost.bow %diff %sole-effect [%mor ~]] ~] +>.$]
   ==
 ++  coup
-  |=  {way/wire saw/(unit tang)}
-  ^-  {(list move) _+>.$}
+  |=  [way=wire saw=(unit tang)]
+  ^-  [(list move) _+>.$]
   [~ +>.$]
 ::
 ++  peer
   |=  *
-  ^-  {(list move) _+>.$}
+  ^-  [(list move) _+>.$]
   =+  wel=[%txt "Welcome to Yint MUD"]
   =+  toconnect=[%txt "To connect to your existing character, enter \"connect name password\""]
   =+  tocreate=[%txt "To create a new character, enter \"create name password\""]
@@ -280,7 +279,7 @@
   [ost.bow %diff %sole-effect %mor ~[(prompt-for ost.bow) wel toconnect tocreate]]~
 ++  pull
   |=  *
-  ^-  {(list move) _+>.$}
+  ^-  [(list move) _+>.$]
   :: todo: add syslog messages for logout. (see player_quit() in session.rb)
   =+  player-id=(~(got by logged-in.w) ost.bow)
   :-  ~
@@ -293,16 +292,16 @@
   ==
 ::  Load 
 ++  poke-yint-load-phrases
-  |=  arg/path
-  ^-  {(list move) _+>.$}
+  |=  arg=path
+  ^-  [(list move) _+>.$]
   =/  j  .^(json %cx arg)
   =+  parsed=(need ((om:jo sa:jo) j))
   :: todo: write something to the syslog instead of the console.
   ~&  [%loaded-phrases]
   [~ +>.$(phrases.w parsed)]
 ++  poke-yint-import
-  |=  arg/path
-  ^-  {(list move) _+>.$}
+  |=  arg=path
+  ^-  [(list move) _+>.$]
   =/  lines  .^(wain %cx arg)
   =+  mydb=(~(restore yint-db db.w) lines)
   ?~  mydb
@@ -320,7 +319,7 @@
   ::  those players.
   %+  turn
     bones
-    |=  {a/* b/bone}
+    |=  [a=* b=bone]
     :*
       b
       %diff
@@ -332,10 +331,10 @@
       ==
     ==
 ++  poke-yint-export
-  |=  man/knot
-  ^-  {(list move) _+>.$}
-  =/  paf/path  /(scot %p our.bow)/home/(scot %da now.bow)/yint/[man]/txt
-  =/  data/wall  ~(serialize yint-db db.w)
+  |=  man=knot
+  ^-  [(list move) _+>.$]
+  =/  paf=path  /(scot %p our.bow)/home/(scot %da now.bow)/yint/[man]/txt
+  =/  data=wall  ~(serialize yint-db db.w)
   =+  to=(foal paf [%txt !>((turn data crip))])
   [[ost.bow %info /jamfile our.bow to]~ +>.$]
 --

@@ -1,18 +1,11 @@
 /-  sole
-!:
+=,  sole
 |%
 :::
 :: constants for match.hoon
 :::
-++  match-types
-  $?  $match-player
-      $match-absolute
-      $match-me
-      $match-here
-      $match-possession
-      $match-neighbor
-      $match-exit
-  ==
++$  match-types
+  ?(%match-player %match-absolute %match-me %match-here %match-possession %match-neighbor %match-exit)
 :::
 :: constants.rb
 :::
@@ -56,67 +49,67 @@
 ::   * -1 as a special value for NOTHING
 ::   * -2 as a special value for AMBIGUOUS
 ::   * -3 as a special value for HOME
-++  record
-  $:  name/tape
-      description/tape
-      location/@sd
-      contents/@sd
-      exits/@sd
-      next/@sd
-      key/@sd
-      fail/tape
-      succ/tape
-      ofail/tape
-      osucc/tape
-      owner/@sd
-      pennies/@sd
-      flags/@u
-      password/tape
++$  record
+  $:  name=tape
+      description=tape
+      location=@sd
+      contents=@sd
+      exits=@sd
+      next=@sd
+      key=@sd
+      fail=tape
+      succ=tape
+      ofail=tape
+      osucc=tape
+      owner=@sd
+      pennies=@sd
+      flags=@u
+      password=tape
   ==
 :: A TinyMUD database is a map of integers to records.
-++  database
-  $:  next/@sd
-      records/(map @sd record)
++$  database
+  $:  next=@sd
+      records=(map @sd record)
   ==
 :: State which persists across procesing multiple lines of input.
-++  world
++$  world
   $:  :: Maps terminal connections to player ids in the database. When this is
       :: ~, the terminal hasn't logged in yet.
-      logged-in/(map bone (unit @sd)) 
+      logged-in=(map bone (unit @sd))
       :: Maps logged in players to bones for output.
-      player-out/(map @sd bone)
+      player-out=(map @sd bone)
       :: The current world database.
-      db/database
+      db=database
       :: Phrases.
-      phrases/(map @t tape)
+      phrases=(map @t tape)
   ==
 :: State which is local to a single line being processed.
-++  io
++$  io
   $:  :: [in] The ship which caused this message
-      src/ship
-      :: [in/out] The current player of the user. ~ means the user hasn't
+      src=ship
+      :: [in=out] The current player of the user. ~ means the user hasn't
       :: logged into a player. Change this to log the user in or out of a
       :: player.
-      player/(unit @sd)
+      player=(unit @sd)
       :: [in] A 32-bit random number. This is used as entropy to the three places
       :: we use nondeterminism. [It's theoretically possible for this to be used
       :: twice but I don't know how to type ? ~(. og eny).]
-      rng/@u
+      rng=@u
       :: [out] Queued messages for the current connection. We separate this out
       :: from |quque| because the user may not have a player number yet. This
       :: queue should be reversed for printing.
-      messages/(list sole-effect:sole)
+      messages=(list sole-effect)
       :: [out] Queued messages for other players. Each of these sole-effects
       :: will be sent to the player ids in turn. Each queue should be reversed
       :: for printing.
-      notifications/(map @sd (list sole-effect:sole))
+      notifications=(map @sd (list sole-effect))
       :: [out] A list of system messages to be printed to the event log. This
       :: queue should be reversed for printing.
-      syslog/(list tape)
+      syslog=(list tape)
   ==
 :: A combination of both of the above done for a 
-++  all  {world io}
++$  all  [=world =io]
 
 :: A parsed line of input.
-++  command  {command/tape arg1/tape arg2/tape}
++$  command  [command=tape arg1=tape arg2=tape]
 --

@@ -1,19 +1,18 @@
 /-  yint
 /+  yint-all, yint-db, yint-match, yint-util
 [[. yint-util] match=yint-match]
-!:
-|_  a/all:yint
+|_  a=all:yint
 
 :: Quickly putting together a help screen.
 
 ++  do-help
-  |=  player/@sd
+  |=  player=@sd
   ^-  all:yint
-  =/  nl/tape  (limo `@tD`10 ~)
+  =/  nl=tape  (limo `@tD`10 ~)
   =/  h  ;:  weld
     "Basic commands:"  nl
-    " move/go <direction>"  nl
-    " get/take <thing>; drop/throw <thing>"  nl
+    " move=go <direction>"  nl
+    " get=take <thing>; drop=throw <thing>"  nl
     " look; look <thing>; look <direction>"  nl
     " say <message>"  nl
     " inventory"  nl

@@ -1,4 +1,4 @@
-:: A fairly mechanical translation of the matcher in MangledMUD/TinyMUD. While
+:: A fairly mechanical translation of the matcher in MangledMUD=TinyMUD. While
 :: other code in yint is content to differ from the original source in tiny
 :: ways, the matcher is really subtle, and as such this is a fairly literal
 :: translation of the code; I suspect this is even worse hoon than I usually
@@ -12,31 +12,30 @@
 /-  yint
 /+  yint-db, yint-util
 [. yint-util]
-!:
 |%
 ++  matcher-instance
-  $:  a/all:yint
-      exact-match/@sd
-      last-match/@sd
-      match-count/@ud
-      match-who/@sd
-      match-name/tape
-      check-keys/?
-      preferred-type/@u
+  $:  a=all:yint
+      exact-match=@sd
+      last-match=@sd
+      match-count=@ud
+      match-who=@sd
+      match-name=tape
+      check-keys=?
+      preferred-type=@u
   ==
 ::  "Constructor" for the matcher.
 ++  init
-  |=  {a/all:yint player/@sd name/tape type/@u}
+  |=  [a=all:yint player=@sd name=tape type=@u]
   ^-  matcher-instance
   [a nothing:yint nothing:yint 0 player name %.n type]
 --
-|_  m/matcher-instance
+|_  m=matcher-instance
 ::  todo: audit all usage of m-left-fold. I deleted my other hand rolled
 ::  left-fold because it broke spectacularly in the face of doors.
 ++  m-left-fold
-  |*  $:  a/(list)
-          state/matcher-instance
-          b/$-({* matcher-instance} matcher-instance)
+  |*  $:  a=(list)
+          state=matcher-instance
+          b=$-([* matcher-instance] matcher-instance)
       ==
   ?~  a
     state
@@ -98,14 +97,14 @@
   ?:  =(loc nothing:yint)
     m
   =+  a-n=absolute-name
-  =/  absolute/@sd
+  =/  absolute=@sd
     ?:  (~(controls yint-db db.a.m) match-who.m a-n)
       a-n
     nothing:yint
   =+  loc-record=(~(got yint-db db.a.m) loc)
   =+  l=(~(enum yint-db db.a.m) exits.loc-record)
   %^  m-left-fold  l  m
-    |=  {exit/@sd m/matcher-instance}
+    |=  [exit=@sd m=matcher-instance]
     ^-  matcher-instance
     ?:  =(exit absolute)
       m(exact-match exit)
@@ -114,7 +113,7 @@
     =+  exit-tape=name:(~(got yint-db db.a.m) exit)
     =+  tokens=(tokenize:yint-util exit-delimeter:yint exit-tape)
     %^  m-left-fold  tokens  m
-      |=  {token/tape m/matcher-instance}
+      |=  [token=tape m=matcher-instance]
       ^-  matcher-instance
       ::  todo: strip.
       ?.  (lower-starts-with:yint-util match-name.m token)
@@ -160,7 +159,7 @@
   last-match.m
 
 ++  noisy-match-result
-  ^-  {@sd all:yint}
+  ^-  [@sd all:yint]
   =+  r=match-result
   ?:  =(r nothing:yint)
     :-  nothing:yint
@@ -182,15 +181,15 @@
 
 
 ++  match-list
-  |=  first/@sd
+  |=  first=@sd
   =+  a-n=absolute-name
-  =/  absolute/@sd
+  =/  absolute=@sd
     ?:  (~(controls yint-db db.a.m) match-who.m a-n)
       a-n
     nothing:yint
   =+  l=(~(enum yint-db db.a.m) first)
   %^  m-left-fold  l  m
-    |=  {i/@sd m/matcher-instance}
+    |=  [i=@sd m=matcher-instance]
     ^-  matcher-instance
     ?:  =(i absolute)
       m(exact-match i)
@@ -204,7 +203,7 @@
 :: Given a choice of two things, pick one of them (one or both things may be
 :: nothing:yint)
 ++  choose-thing
-  |=  {thing1/@sd thing2/@sd}
+  |=  [thing1=@sd thing2=@sd]
   ^-  @sd
   ?:  =(thing1 nothing:yint)
     thing2
@@ -223,7 +222,7 @@
   (choose-thing-part-2 thing1 thing2)
 
 ++  choose-thing-part-2
-  |=  {thing1/@sd thing2/@sd}
+  |=  [thing1=@sd thing2=@sd]
   ^-  @sd
   ?:  check-keys.m
     =+  has1=(~(could-doit yint-db db.a.m) match-who.m thing1)
@@ -236,7 +235,7 @@
   (choose-thing-part-3 thing1 thing2)
 
 ++  choose-thing-part-3
-  |=  {thing1/@sd thing2/@sd}
+  |=  [thing1=@sd thing2=@sd]
   ^-  @sd
   ?:  =(0 (mod rng.a.m 2))
     thing1

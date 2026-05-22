@@ -4,11 +4,10 @@
 /-  yint
 /+  yint-all, yint-db, yint-match, yint-util
 [[. yint-util] match=yint-match]
-!:
-|_  a/all:yint
+|_  a=all:yint
 
 ++  do-name
-  |=  {player/@sd name/tape newname/tape}
+  |=  [player=@sd name=tape newname=tape]
   ^-  all:yint
   =^  thing  a  (match-controlled player name)
   ?:  =(thing nothing:yint)
@@ -22,7 +21,7 @@
   (impl-name-thing thing player name newname)
 
 ++  impl-name-player
-  |=  {thing/@sd player/@sd unparsed/tape}
+  |=  [thing=@sd player=@sd unparsed=tape]
   ^-  all:yint
   =+  f=(find " " unparsed)
   ?~  f
@@ -42,7 +41,7 @@
   (queue-phrase 'name-set' a)
 
 ++  impl-name-thing
-  |=  {thing/@sd player/@sd name/tape newname/tape}
+  |=  [thing=@sd player=@sd name=tape newname=tape]
   ^-  all:yint
   ?.  (~(ok-name yint-db db.a) newname)
     (queue-phrase 'not-a-reasonable-name' a)
@@ -50,7 +49,7 @@
   (queue-phrase 'name-set' a)
 
 ++  do-describe
-  |=  {player/@sd name/tape description/tape}
+  |=  [player=@sd name=tape description=tape]
   ^-  all:yint
   =^  thing  a  (match-controlled player name)
   ?:  =(thing nothing:yint)
@@ -59,7 +58,7 @@
   (queue-phrase 'desc-set' a)
 
 ++  do-fail
-  |=  {player/@sd name/tape msg/tape}
+  |=  [player=@sd name=tape msg=tape]
   ^-  all:yint
   =^  thing  a  (match-controlled player name)
   ?:  =(thing nothing:yint)
@@ -68,7 +67,7 @@
   (queue-phrase 'message-set' a)
 
 ++  do-success
-  |=  {player/@sd name/tape msg/tape}
+  |=  [player=@sd name=tape msg=tape]
   ^-  all:yint
   =^  thing  a  (match-controlled player name)
   ?:  =(thing nothing:yint)
@@ -77,7 +76,7 @@
   (queue-phrase 'message-set' a)
 
 ++  do-osuccess
-  |=  {player/@sd name/tape msg/tape}
+  |=  [player=@sd name=tape msg=tape]
   ^-  all:yint
   =^  thing  a  (match-controlled player name)
   ?:  =(thing nothing:yint)
@@ -86,7 +85,7 @@
   (queue-phrase 'message-set' a)
 
 ++  do-ofail
-  |=  {player/@sd name/tape msg/tape}
+  |=  [player=@sd name=tape msg=tape]
   ^-  all:yint
   =^  thing  a  (match-controlled player name)
   ?:  =(thing nothing:yint)
@@ -97,7 +96,7 @@
 ::  todo: ++do-lock
 
 ++  do-lock
-  |=  {player/@sd name/tape keyname/tape}
+  |=  [player=@sd name=tape keyname=tape]
   ^-  all:yint
   =+  matcher=(init:yint-match a player name notype:yint)
   =.  matcher  ~(match-everything yint-match matcher)
@@ -114,9 +113,9 @@
     (queue-phrase 'no-key' a)
   ?:  =(keyname "")
     (queue-phrase 'no-key' a)
-  =/  antilock/?  =(i.keyname not-token:yint)
+  =/  antilock=?  =(i.keyname not-token:yint)
   ::  todo: why do we have to shadow this for the type system ehre?
-  =/  keyname/tape
+  =/  keyname=tape
     ?.  antilock
       keyname
     q:(trim 1 keyname)
@@ -150,7 +149,7 @@
   (queue-phrase 'locked' a)
 
 ++  do-unlock
-  |=  {player/@sd name/tape}
+  |=  [player=@sd name=tape]
   ^-  all:yint
   =^  thing  a  (match-controlled player name)
   ?:  =(thing nothing:yint)
@@ -162,7 +161,7 @@
 ::  todo: ++do-unlink
 
 ++  do-unlink
-  |=  {player/@sd name/tape}
+  |=  [player=@sd name=tape]
   ^-  all:yint
   =+  matcher=(init:yint-match a player name type-thing:yint)
   =.  matcher  ~(match-exit yint-match matcher)
@@ -190,7 +189,7 @@
   (queue-phrase 'cant-unlink-that' a)
 
 ++  do-chown
-  |=  {player/@sd name/tape new-owner/tape}
+  |=  [player=@sd name=tape new-owner=tape]
   ^-  all:yint
   ~&  [%do-chown name new-owner]
   ?.  (~(is-wizard yint-db db.a) player)
@@ -211,8 +210,8 @@
 ::  todo: ++do-set
 
 ++  match-controlled
-  |=  {player/@sd name/tape}
-  ^-  {@sd all:yint}
+  |=  [player=@sd name=tape]
+  ^-  [@sd all:yint]
   =+  matcher=(init:yint-match a player name type-exit:yint)
   =.  matcher  ~(match-everything yint-match matcher)
   =^  match  a  ~(noisy-match-result yint-match matcher)

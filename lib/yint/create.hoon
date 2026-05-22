@@ -4,12 +4,11 @@
 /-  yint
 /+  yint-all, yint-db, yint-match, yint-util
 [[. yint-util] match=yint-match]
-!:
-|_  a/all:yint
+|_  a=all:yint
 
 ++  parse-linkable-room
-  |=  {player/@sd room-name/tape}
-  ^-  {@sd all:yint}
+  |=  [player=@sd room-name=tape]
+  ^-  [@sd all:yint]
   ?:  =((cass room-name) "home")
     [home:yint a]
   =/  room
@@ -27,7 +26,7 @@
 
 ::  Opens an exit belonging to the player in the specified direction.
 ++  do-open
-  |=  {player/@sd direction/tape linkto/tape}
+  |=  [player=@sd direction=tape linkto=tape]
   ^-  all:yint
   =+  loc=location:(~(got yint-db db.a) player)
   ?:  =(loc nothing:yint)
@@ -73,7 +72,7 @@
 
 ::
 ++  do-link
-  |=  {player/@sd name/tape room-name/tape}
+  |=  [player=@sd name=tape room-name=tape]
   ^-  all:yint
   =+  loc=location:(~(got yint-db db.a) player)
   ?:  =(nothing:yint loc)
@@ -123,7 +122,7 @@
 
 ::  (Helper detail of do-link.)
 ++  complete-do-link-exit
-  |=  {player/@sd thing/@sd room/@sd}
+  |=  [player=@sd thing=@sd room=@sd]
   ^-  all:yint
   =.  a  (~(owner-set yint-all a) thing player)
   =.  a  (~(location-set yint-all a) thing room)
@@ -131,7 +130,7 @@
 
 ::  (Helper detail of do-link.)
 ++  complete-do-link-thing
-  |=  {player/@sd thing/@sd room/@sd}
+  |=  [player=@sd thing=@sd room=@sd]
   ^-  all:yint
   ?.  (~(controls yint-db db.a) player thing)
     (queue-phrase 'no-permission' a)
@@ -142,7 +141,7 @@
 
 ::  Creates an object with a particular name under the ownership of a player.
 ++  do-create
-  |=  {player/@sd name/tape in-cost/tape}
+  |=  [player=@sd name=tape in-cost=tape]
   ?:  =(name "")
     (queue-phrase 'create-what' a)
   ?.  (~(ok-name yint-db db.a) name)
@@ -150,7 +149,7 @@
   =+  parsed-cost=(rust in-cost dim:ag)
   ?~  parsed-cost
     (queue-phrase 'objects-must-have-a-value' a)
-  =/  cost/@ud
+  =/  cost=@ud
     ?:  (lth (need parsed-cost) object-cost:yint)
       object-cost:yint
     (need parsed-cost)
@@ -159,12 +158,12 @@
     (queue-phrase 'sorry-poor' a)
   =^  index  db.a  ~(add-new-record yint-db db.a)
   =+  player-r=(~(got yint-db db.a) player)
-  =/  pennies/@sd
+  =/  pennies=@sd
     =+  base=(endow cost)
     ?:  (gth base max-object-endowment:yint)
       (sun:si max-object-endowment:yint)
     (sun:si base)
-  =/  exits/@sd
+  =/  exits=@sd
     ?:  ?&  !=(location:player-r nothing:yint)
             (~(can-link-to yint-db db.a) player location:player-r)
         ==
@@ -206,7 +205,7 @@
 
 ::  Endow is a helper function to calculate the autmatic endowment for an object.
 ++  endow
-  |=  cost/@ud
+  |=  cost=@ud
   ^-  @ud
   %+  div
     (sub cost endowment-calculator:yint)
@@ -214,7 +213,7 @@
 
 ::  Digs into an area, creating a new room. Notifies the player of outcome.
 ++  do-dig
-  |=  {player/@sd name/tape}
+  |=  [player=@sd name=tape]
   ^-  all:yint
   ?:  =(name "")
     (queue-phrase 'dig-what' a)

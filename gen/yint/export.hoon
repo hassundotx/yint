@@ -1,3 +1,3 @@
 :-  %say
-|=  {^ {arg/knot $~} ^}
+|=  [^ [arg=knot $~] ^]
 [%yint-export arg]

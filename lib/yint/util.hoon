@@ -1,19 +1,18 @@
 ::  common utilities used everywhere
 /-  yint
 /+  yint-db
-!:
 |%
 ::  Add an entry to the system log.
 ++  log
-  |=  {msg/tape a/all:yint}
+  |=  [msg=tape a=all:yint]
   ^-  all:yint
   a(syslog [i=msg t=syslog.a])
 ++  phrase
-  |=  {p/@t a/all:yint}
+  |=  [p=@t a=all:yint]
   ^-  tape
   (~(got by phrases.a) p)
 ++  phrase-with
-  |=  {p/@t args/(list tape) a/all:yint}
+  |=  [p=@t args=(list tape) a=all:yint]
   ^-  tape
   =+  txt=(phrase p a)
   |-
@@ -29,7 +28,7 @@
   $(args t.args, txt :(weld lhs i.args rhs))
 ::  Queue raw text to the player.
 ++  queue
-  |=  {msg/tape a/all:yint}
+  |=  [msg=tape a=all:yint]
   ^-  all:yint
   =+  lines=(tokenize `@`10 msg)
   |-
@@ -38,26 +37,26 @@
   $(messages.a [i=[%txt i.lines] t=messages.a], lines t.lines)
 ::  Looks up a response phrase and queues it to the active player.
 ++  queue-phrase
-  |=  {p/@t a/all:yint}
+  |=  [p=@t a=all:yint]
   ^-  all:yint
   (queue (phrase p a) a)
 ++  queue-phrase-with
-  |=  {p/@t args/(list tape) a/all:yint}
+  |=  [p=@t args=(list tape) a=all:yint]
   ^-  all:yint
   (queue (phrase-with p args a) a)
 ++  queue-styx
-  |=  {msg/styx a/all:yint}
+  |=  [msg=styx a=all:yint]
   ^-  all:yint
   a(messages [i=[%klr msg] t=messages.a])
 ++  queue-notification
-  |=  {player/@sd msg/styx a/all:yint}
+  |=  [player=@sd msg=styx a=all:yint]
   ^-  all:yint
   =+  old=(~(get by notifications.a) player)
   ?~  old
     a(notifications (~(put by notifications.a) player [i=[%klr msg] t=~]))
   a(notifications (~(put by notifications.a) player [i=[%klr msg] t=(need old)]))
 ++  parse-dbref
-  |=  s/tape
+  |=  s=tape
   ^-  @sd
   ?~  s
     nothing:yint
@@ -67,7 +66,7 @@
   (sun:si (need id))
 
 ++  print-ref
-  |=  r/@sd
+  |=  r=@sd
   ^-  tape
   ?:  (syn:si r)                                    ::  if positive
     (scow %ud (abs:si r))
@@ -75,8 +74,8 @@
 
 ::  "one;two;three" -> <<"one" "two" "three">>
 ++  tokenize
-  |=  {b/@tD t/tape}
-  =|  out/(list tape)
+  |=  [b=@tD t=tape]
+  =|  out=(list tape)
   %-  flop
   |-
   ^-  (list tape)
@@ -96,7 +95,7 @@
 
 ::  
 ++  lower-starts-with
-  |=  {nedl/tape hstk/tape}
+  |=  [nedl=tape hstk=tape]
   ^-  ?
   =.  nedl  (cass nedl)
   =.  hstk  (cass hstk)
@@ -104,7 +103,7 @@
 
 :: Get the location name for a thing
 ++  getname
-  |=  {loc/@sd a/all:yint}
+  |=  [loc=@sd a=all:yint]
   ^-  tape
   ?:  =(loc nothing:yint)
     (phrase 'loc-nothing' a)
@@ -114,7 +113,7 @@
 
 ::  Misc function that starts quiting a player's session.
 ++  do-quit
-  |=  {a/all:yint}
+  |=  [a=all:yint]
   ^-  all:yint
   =+  id=(need player.a)
   =+  record=(~(got yint-db db.a) id)

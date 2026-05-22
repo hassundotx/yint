@@ -5,11 +5,10 @@
 /-  yint
 /+  yint-all, yint-db, yint-util
 [. yint-util]
-!:
-|_  a/all:yint
+|_  a=all:yint
 
 ++  do-say
-  |=  {player/@sd arg1/tape arg2/tape}
+  |=  [player=@sd arg1=tape arg2=tape]
   ^-  all:yint
   =+  loc=location:(~(got yint-db db.a) player)
   ?:  =(loc nothing:yint)
@@ -23,7 +22,7 @@
   ==
 
 ++  do-pose
-  |=  {player/@sd arg1/tape arg2/tape}
+  |=  [player=@sd arg1=tape arg2=tape]
   ^-  all:yint
   =+  loc=location:(~(got yint-db db.a) player)
   ?:  =(loc nothing:yint)
@@ -39,7 +38,7 @@
 ::  Helper function to send a notify everyone in a list with a particular message besides
 ::  one person.
 ++  notify-except
-  |=  {first/@sd exception/@sd msg/tape}
+  |=  [first=@sd exception=@sd msg=tape]
   ^-  all:yint
   =+  l=(~(enum yint-db db.a) first)
   |-
@@ -58,7 +57,7 @@
   $(l t.l)
 
 ++  reconstruct-message
-  |=  {arg1/tape arg2/tape}
+  |=  [arg1=tape arg2=tape]
   ^-  tape
   ?~  arg2
     arg1

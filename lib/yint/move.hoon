@@ -5,14 +5,13 @@
 /-  yint
 /+  yint-all, yint-util
 [. yint-util]
-!:
-|_  a/all:yint
+|_  a=all:yint
 ::
 :: move.rb
 ::
 
 ++  moveto
-  |=  {what/@sd where/@sd}
+  |=  [what=@sd where=@sd]
   ^-  all:yint
   =+  loc=location:(~(got yint-db db.a) what)
   ::  remove what from old location
@@ -36,7 +35,7 @@
   (~(location-set yint-all a) what where)
 
 ++  enter-room
-  |=  {player/@sd loc/@sd}
+  |=  [player=@sd loc=@sd]
   ^-  all:yint
   =.  loc
     ?:  =(loc home:yint)
@@ -69,7 +68,7 @@
       ==
     a
   =.  a  (~(look-room yint-look a) player loc)
-  =/  give-penny/?  =(0 (mod rng.a penny-rate:yint))
+  =/  give-penny=?  =(0 (mod rng.a penny-rate:yint))
   ?:  ?&  give-penny
           !(~(controls yint-db db.a) player loc)
           (lte pennies:(~(got yint-db db.a) player) max-pennies:yint)
@@ -80,7 +79,7 @@
   a
 ::
 ++  send-home
-  |=  thing/@sd
+  |=  thing=@sd
   ^-  all:yint
   =+  type=(~(typeof yint-db db.a) thing)
   ?:  =(type type-player:yint)
@@ -92,7 +91,7 @@
 ::  Determines if a player is making a legal move. Legal move is one of the
 ::  exits in the room or "home" keyword.
 ++  can-move
-  |=  {player/@sd direction/tape}
+  |=  [player=@sd direction=tape]
   ^-  ?
   ?:  =((cass direction) "home")
     %.y
@@ -102,7 +101,7 @@
 ::  Moves a player through a given exit, or keyword "home". Notifies player
 ::  and room of consequence.
 ++  do-move
-  |=  {player/@sd direction/tape}
+  |=  [player=@sd direction=tape]
   ^-  all:yint
   ?:  =(direction "home")
     =+  loc=location:(~(got yint-db db.a) player)
@@ -126,7 +125,7 @@
   a
 
 ++  do-get
-  |=  {player/@sd what/tape}
+  |=  [player=@sd what=tape]
   ^-  all:yint
   =+  matcher=(init:yint-match a player what type-thing:yint)
   =.  matcher  ~(match-neighbor yint-match matcher)
@@ -167,7 +166,7 @@
   (queue-phrase 'cant-take' a)
 
 ++  do-drop
-  |=  {player/@sd name/tape}
+  |=  [player=@sd name=tape]
   ^-  all:yint
   =+  loc=location:(~(got yint-db db.a) player)
   ?:  =(loc nothing:yint)
@@ -208,7 +207,7 @@
 ::  "Private"
 
 ++  send-contents
-  |=  {loc/@sd dest/@sd}
+  |=  [loc=@sd dest=@sd]
   ^-  all:yint
   =+  first=contents:(~(got yint-db db.a) loc)
   =.  a  (~(contents-set yint-all a) loc nothing:yint)
@@ -219,9 +218,9 @@
   (~(contents-set yint-all a) loc r)
 
 ++  set-all-contents-nothing
-  |=  first/@sd
+  |=  first=@sd
   ::  remove the location of everything in the list.
-  =/  l/(list @sd)  (~(enum yint-db db.a) first)
+  =/  l=(list @sd)  (~(enum yint-db db.a) first)
   |-
   ?~  l
     a
@@ -231,7 +230,7 @@
 
 ::  Helper gate for send-contents
 ++  send-contents-move
-  |=  {first/@sd loc/@sd dest/@sd a/all:yint}
+  |=  [first=@sd loc=@sd dest=@sd a=all:yint]
   =+  x=~(keys yint-db db.a)
   ^-  all:yint
   |-
@@ -241,7 +240,7 @@
   ?.  (~(is-thing yint-db db.a) first)
     =.  a  (moveto first loc)
     $(first rest)
-  =/  i/@sd
+  =/  i=@sd
     ?:  (~(is-sticky yint-db db.a) first)
       home:yint
     dest
