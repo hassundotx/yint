@@ -9,9 +9,9 @@
 ++  look-room
   |=  [player=@sd loc=@sd]
   ^-  all:yint
-  =+  record=(~(got yint-db db.a) loc)
+  =+  record=(~(got yint-db db.world.a) loc)
   =.  a
-    ?:  (~(can-link-to yint-db db.a) player loc)
+    ?:  (~(can-link-to yint-db db.world.a) player loc)
       =+  id=(print-ref loc)
       (queue-styx [[[`%br ~ ~] name.record] [[~ ~ ~] "(#"] [[`%un ~ ~] id] [[~ ~ ~] ")"] ~] a)
     (queue-styx [[[`%br ~ ~] name.record] ~] a)
@@ -26,9 +26,9 @@
 ++  do-look-at
   |=  name=tape
   ^-  all:yint
-  =+  player=(need player.a)
+  =+  player=(need player.io.a)
   ?:  =("" name)
-    =+  location=(~(gotlocation yint-db db.a) player)
+    =+  location=(~(gotlocation yint-db db.world.a) player)
     ?.  =(location nothing:yint)
       (look-room player location)
     a
@@ -42,7 +42,7 @@
   =^  thing  a  ~(noisy-match-result yint-match matcher)
   ?:  =(thing nothing:yint)
     a
-  =+  type=(~(typeof yint-db db.a) thing)
+  =+  type=(~(typeof yint-db db.world.a) thing)
   ?:  =(type type-room:yint)
     (look-room player thing)
   ?:  =(type type-player:yint)
@@ -52,7 +52,7 @@
 
 ++  get-thing-to-examine
   |=  [player=@sd name=tape]
-  =+  thing=location:(~(got yint-db db.a) player)
+  =+  thing=location:(~(got yint-db db.world.a) player)
   ?~  name
     [thing a]
   ?:  =("" name)
@@ -73,11 +73,11 @@
   =^  thing  a  (get-thing-to-examine player name)
   ?:  =(thing nothing:yint)
     a
-  ?.  (~(can-link yint-db db.a) player thing)
+  ?.  (~(can-link yint-db db.world.a) player thing)
     (queue-phrase 'can-only-examine-owned' a)
-  =+  r=(~(got yint-db db.a) thing)
+  =+  r=(~(got yint-db db.world.a) thing)
   =/  antilock
-    ?:  (~(is-antilock yint-db db.a) thing)
+    ?:  (~(is-antilock yint-db db.world.a) thing)
       "!"
     " "
   =/  line  ;:
@@ -109,7 +109,7 @@
   =.  a
     ?:  =(osucc:r "")  a
     (queue-phrase-with 'osucc' [osucc:r ~] a)
-  =+  type=(~(typeof yint-db db.a) thing)
+  =+  type=(~(typeof yint-db db.world.a) thing)
   ?:  =(type type-room:yint)
     (examine-room player r)
   ?:  =(type type-thing:yint)
@@ -128,7 +128,7 @@
     ?:  =(exits:r nothing:yint)
       (queue-phrase 'no-exits' a)
     =.  a  (queue-phrase 'exits' a)
-    =+  exits=(~(enum yint-db db.a) exits:r)
+    =+  exits=(~(enum yint-db db.world.a) exits:r)
     |-
     ?~  exits
       a
@@ -148,8 +148,8 @@
   =.  a  (queue-phrase-with 'home' [home home-num ~] a)
   =+  loc=location:r
   ?:  ?&  !=(loc nothing:yint)
-          ?|  (~(controls yint-db db.a) player loc)
-              (~(can-link-to yint-db db.a) player loc)
+          ?|  (~(controls yint-db db.world.a) player loc)
+              (~(can-link-to yint-db db.world.a) player loc)
           ==
       ==
     =+  n=(getname location:r a)
@@ -166,14 +166,14 @@
     (queue-phrase 'dest-home' a)
   =+  n=(getname location:r a)
   =+  ref=(print-ref location:r)
-  ?:  (~(is-room yint-db db.a) location:r)
+  ?:  (~(is-room yint-db db.world.a) location:r)
     (queue-phrase-with 'dest' [n ref ~] a)
   (queue-phrase-with 'carried-by' [n ref ~] a)  
 
 ++  do-score
   |=  player=@sd
   ^-  all:yint
-  =+  count=pennies:(~(got yint-db db.a) player)
+  =+  count=pennies:(~(got yint-db db.world.a) player)
   ?:  =(--1 count)
     (queue-phrase 'you-have-a-penny' a)
   (queue-phrase-with 'you-have-pennies' [(scow %ud (abs:si count)) ~] a)
@@ -181,12 +181,12 @@
 ++  do-inventory
   |=  player=@sd
   ^-  all:yint
-  =+  thing=contents:(~(got yint-db db.a) player)
+  =+  thing=contents:(~(got yint-db db.world.a) player)
   ?:  =(thing nothing:yint)
     =.  a  (queue-phrase 'carrying-nothing' a)
     (do-score player)
   =.  a  (queue-phrase 'carrying' a)
-  =+  items=(~(enum yint-db db.a) thing)
+  =+  items=(~(enum yint-db db.world.a) thing)
   |-
   ?~  items
     (do-score player)
@@ -199,15 +199,15 @@
   |=  [player=@sd loc=@sd contents-name=tape]
   ^-  all:yint
   =/  can-see-loc=?  ?|
-    !(~(is-dark yint-db db.a) loc)
-    (~(controls yint-db db.a) player loc)
+    !(~(is-dark yint-db db.world.a) loc)
+    (~(controls yint-db db.world.a) player loc)
   ==
-  =+  c=contents:(~(got yint-db db.a) loc)
-  =/  things=(list @sd)  (~(enum yint-db db.a) c)
+  =+  c=contents:(~(got yint-db db.world.a) loc)
+  =/  things=(list @sd)  (~(enum yint-db db.world.a) c)
   =/  can-see-something=?
     %+  lien
       things
-      |=(thing=@sd (~(can-see yint-db db.a) player thing can-see-loc))
+      |=(thing=@sd (~(can-see yint-db db.world.a) player thing can-see-loc))
   ?.  can-see-something
     a
   :: something exists! show them everything
@@ -216,7 +216,7 @@
   ?~  things
     a
   =.  a
-    ?:  (~(can-see yint-db db.a) player i.things can-see-loc)
+    ?:  (~(can-see yint-db db.world.a) player i.things can-see-loc)
       (notify-name player i.things)
     a
   $(things t.things)
@@ -225,7 +225,7 @@
   |=  [player=@sd thing=@sd]
   ^-  all:yint
   =+  n=(getname thing a)
-  ?:  (~(controls yint-db db.a) player thing)
+  ?:  (~(controls yint-db db.world.a) player thing)
     =+  id=(print-ref thing)
     (queue-styx [[[~ ~ ~] n] [[~ ~ ~] "(#"] [[`%un ~ ~] id] [[~ ~ ~] ")"] ~] a)
   (queue n a)
@@ -233,7 +233,7 @@
 ++  look-simple
   |=  [player=@sd thing=@sd]
   ^-  all:yint
-  =+  desc=description:(~(got yint-db db.a) thing)
+  =+  desc=description:(~(got yint-db db.world.a) thing)
   ?:  =("" desc)
     (queue-phrase 'see-nothing' a)
   (queue desc a)
@@ -241,7 +241,7 @@
 ++  flag-description
   |=  thing=@sd
   ^-  tape
-  =+  type=(~(typeof yint-db db.a) thing)
+  =+  type=(~(typeof yint-db db.world.a) thing)
   =/  type-tape
     ?:  =(type-room:yint type)
       (phrase 'type-room' a)

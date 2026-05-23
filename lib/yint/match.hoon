@@ -46,10 +46,12 @@
     m
   ?.  =(i.match-name.m lookup-token:yint)
     m
-  =^  can-afford  db.a.m  (~(payfor yint-db db.a.m) match-who.m lookup-cost:yint)
+  =/  new-db=database:yint  db.world.a.m
+  =^  can-afford  new-db  (~(payfor yint-db new-db) match-who.m lookup-cost:yint)
+  =.  m  m(a [world.a.m(db new-db) io.a.m])
   ?.  can-afford
     m
-  =+  player-id=(~(lookup-player yint-db db.a.m) q:(trim 1 match-name.m))
+  =+  player-id=(~(lookup-player yint-db db.world.a.m) t.match-name.m)
   ?:  =(player-id nothing:yint)
     m
   m(exact-match player-id)
@@ -74,35 +76,35 @@
     m
   ?.  =(match-name.m "here")
     m
-  =+  loc=location:(~(got yint-db db.a.m) match-who.m)
+  =+  loc=location:(~(got yint-db db.world.a.m) match-who.m)
   ?:  =(loc nothing:yint)
     m
   m(exact-match loc)
 
 ++  match-possession
   ^-  matcher-instance
-  (match-list contents:(~(got yint-db db.a.m) match-who.m))  
+  (match-list contents:(~(got yint-db db.world.a.m) match-who.m))  
 
 ++  match-neighbor
   ^-  matcher-instance
-  =+  loc=(~(gotlocation yint-db db.a.m) match-who.m)
+  =+  loc=(~(gotlocation yint-db db.world.a.m) match-who.m)
   ?:  =(loc nothing:yint)
     m
-  (match-list contents:(~(got yint-db db.a.m) loc))
+  (match-list contents:(~(got yint-db db.world.a.m) loc))
 
 ::
 ++  match-exit
   ^-  matcher-instance
-  =+  loc=(~(gotlocation yint-db db.a.m) match-who.m)
+  =+  loc=(~(gotlocation yint-db db.world.a.m) match-who.m)
   ?:  =(loc nothing:yint)
     m
   =+  a-n=absolute-name
   =/  absolute=@sd
-    ?:  (~(controls yint-db db.a.m) match-who.m a-n)
+    ?:  (~(controls yint-db db.world.a.m) match-who.m a-n)
       a-n
     nothing:yint
-  =+  loc-record=(~(got yint-db db.a.m) loc)
-  =+  l=(~(enum yint-db db.a.m) exits.loc-record)
+  =+  loc-record=(~(got yint-db db.world.a.m) loc)
+  =+  l=(~(enum yint-db db.world.a.m) exits.loc-record)
   %^  m-left-fold  l  m
     |=  [exit=@sd m=matcher-instance]
     ^-  matcher-instance
@@ -110,7 +112,7 @@
       m(exact-match exit)
     ?:  =(match-name.m "")
       m
-    =+  exit-tape=name:(~(got yint-db db.a.m) exit)
+    =+  exit-tape=name:(~(got yint-db db.world.a.m) exit)
     =+  tokens=(tokenize:yint-util exit-delimeter:yint exit-tape)
     %^  m-left-fold  tokens  m
       |=  [token=tape m=matcher-instance]
@@ -120,7 +122,7 @@
         m
       =.  match-count.m
         ?:  check-keys.m
-          ?:  (~(could-doit yint-db db.a.m) match-who.m exit)
+          ?:  (~(could-doit yint-db db.world.a.m) match-who.m exit)
             (add 1 match-count.m)
           match-count.m
         (add 1 match-count.m)
@@ -130,16 +132,16 @@
 
 ++  match-everything
   ^-  matcher-instance
-  =.  m  ~(match-exit yint-match m)
-  =.  m  ~(match-neighbor yint-match m)
-  =.  m  ~(match-possession yint-match m)
-  =.  m  ~(match-me yint-match m)
-  =.  m  ~(match-here yint-match m)
+  =.  m  match-exit
+  =.  m  match-neighbor
+  =.  m  match-possession
+  =.  m  match-me
+  =.  m  match-here
   =.  m
-    ?.  (~(is-wizard yint-db db.a.m) match-who.m)
+    ?.  (~(is-wizard yint-db db.world.a.m) match-who.m)
       m
-    =.  m  ~(match-absolute yint-match m)
-    ~(match-player yint-match m)
+    =.  m  match-absolute
+    match-player
   m
 
 ++  match-result
@@ -184,10 +186,10 @@
   |=  first=@sd
   =+  a-n=absolute-name
   =/  absolute=@sd
-    ?:  (~(controls yint-db db.a.m) match-who.m a-n)
+    ?:  (~(controls yint-db db.world.a.m) match-who.m a-n)
       a-n
     nothing:yint
-  =+  l=(~(enum yint-db db.a.m) first)
+  =+  l=(~(enum yint-db db.world.a.m) first)
   %^  m-left-fold  l  m
     |=  [i=@sd m=matcher-instance]
     ^-  matcher-instance
@@ -195,7 +197,7 @@
       m(exact-match i)
     ?~  match-name.m
       m
-    ?:  =(name:(~(got yint-db db.a.m) i) match-name.m)
+    ?:  =(name:(~(got yint-db db.world.a.m) i) match-name.m)
       m(exact-match (choose-thing exact-match.m i))
     :: todo: final else case is hard; need regexps or a custom space chomper.
     m
@@ -212,11 +214,11 @@
   ::  note: this construct seems really bad; is there a much easier way to handle
   ::  ratsnests of nested ifs in hoon?
   ?:  !=(preferred-type.m notype:yint)
-    ?:  =((~(typeof yint-db db.a.m) thing1) preferred-type.m)
-      ?:  =((~(typeof yint-db db.a.m) thing2) preferred-type.m)
+    ?:  =((~(typeof yint-db db.world.a.m) thing1) preferred-type.m)
+      ?:  =((~(typeof yint-db db.world.a.m) thing2) preferred-type.m)
         (choose-thing-part-2 thing1 thing2)
       thing1
-    ?:  =((~(typeof yint-db db.a.m) thing2) preferred-type.m)
+    ?:  =((~(typeof yint-db db.world.a.m) thing2) preferred-type.m)
       thing2
     (choose-thing-part-2 thing1 thing2)
   (choose-thing-part-2 thing1 thing2)
@@ -225,8 +227,8 @@
   |=  [thing1=@sd thing2=@sd]
   ^-  @sd
   ?:  check-keys.m
-    =+  has1=(~(could-doit yint-db db.a.m) match-who.m thing1)
-    =+  has2=(~(could-doit yint-db db.a.m) match-who.m thing2)
+    =+  has1=(~(could-doit yint-db db.world.a.m) match-who.m thing1)
+    =+  has2=(~(could-doit yint-db db.world.a.m) match-who.m thing2)
     ?:  ?&(has1 !has2)
       thing1
     ?:  ?&(has2 !has1)
@@ -237,7 +239,7 @@
 ++  choose-thing-part-3
   |=  [thing1=@sd thing2=@sd]
   ^-  @sd
-  ?:  =(0 (mod rng.a.m 2))
+  ?:  =(0 (mod rng.io.a.m 2))
     thing1
   thing2
 --

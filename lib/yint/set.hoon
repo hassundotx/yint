@@ -16,7 +16,7 @@
     (queue-phrase 'what-name' a)
   ?:  =(newname "")
     (queue-phrase 'what-name' a)
-  ?:  (~(is-player yint-db db.a) thing)
+  ?:  (~(is-player yint-db db.world.a) thing)
     (impl-name-player thing player newname)
   (impl-name-thing thing player name newname)
 
@@ -30,11 +30,13 @@
   ::  note: the original allowed multiple spaces.
   =+  newname=p:(trim (need f) unparsed)
   =+  password=q:(trim (add 1 (need f)) unparsed)
-  ?.  =(password password:(~(got yint-db db.a) thing))
+  ?.  =(password password:(~(got yint-db db.world.a) thing))
     (queue-phrase 'bad-password' a)
-  ?.  (~(ok-name yint-db db.a) newname)
+  ?.  (~(ok-name yint-db db.world.a) newname)
     (queue-phrase 'bad-player-name' a)
-  =^  can-pay  db.a  (~(payfor yint-db db.a) player lookup-cost:yint)
+  =/  new-db=database:yint  db.world.a
+  =^  can-pay  new-db  (~(payfor yint-db new-db) player lookup-cost:yint)
+  =.  a  [world.a(db new-db) io.a]
   ?.  can-pay
     (queue-phrase 'bad-player-name' a)
   =.  a  (~(name-set yint-all a) thing newname)
@@ -43,7 +45,7 @@
 ++  impl-name-thing
   |=  [thing=@sd player=@sd name=tape newname=tape]
   ^-  all:yint
-  ?.  (~(ok-name yint-db db.a) newname)
+  ?.  (~(ok-name yint-db db.world.a) newname)
     (queue-phrase 'not-a-reasonable-name' a)
   =.  a  (~(name-set yint-all a) thing newname)
   (queue-phrase 'name-set' a)
@@ -105,7 +107,7 @@
     (queue-phrase 'dont-see-lock' a)
   ?:  =(thing ambiguous:yint)
     (queue-phrase 'which-one-lock' a)
-  ?.  (~(controls yint-db db.a) player thing)
+  ?.  (~(controls yint-db db.world.a) player thing)
     (queue-phrase 'bad-lock' a)
   ::  this slighly deviates from MangledMUD; we're doing an extra check here to
   ::  simplify an if block.
@@ -118,7 +120,7 @@
   =/  keyname=tape
     ?.  antilock
       keyname
-    q:(trim 1 keyname)
+    t.keyname
 
   =+  key-match=(init:yint-match a player keyname type-thing:yint)
   =.  key-match  ~(match-neighbor yint-match key-match)
@@ -126,7 +128,7 @@
   =.  key-match  ~(match-me yint-match key-match)
   =.  key-match  ~(match-player yint-match key-match)
   =.  key-match
-    ?.  (~(is-wizard yint-db db.a) player)
+    ?.  (~(is-wizard yint-db db.world.a) player)
       key-match
     ~(match-absolute yint-match key-match)
   =+  key=~(match-result yint-match key-match)
@@ -135,8 +137,8 @@
     (queue-phrase 'no-key' a)
   ?:  =(key ambiguous:yint)
     (queue-phrase 'which-key' a)
-  ?:  ?&  !(~(is-player yint-db db.a) key)
-          !(~(is-thing yint-db db.a) key)
+  ?:  ?&  !(~(is-player yint-db db.world.a) key)
+          !(~(is-thing yint-db db.world.a) key)
       ==
     (queue-phrase 'bad-key-link' a)
 
@@ -167,7 +169,7 @@
   =.  matcher  ~(match-exit yint-match matcher)
   =.  matcher  ~(match-here yint-match matcher)
   =.  matcher
-    ?.  (~(is-wizard yint-db db.a) player)
+    ?.  (~(is-wizard yint-db db.world.a) player)
       matcher
     ~(match-absolute yint-match matcher)
   =+  exit=~(match-result yint-match matcher)
@@ -176,10 +178,10 @@
     (queue-phrase 'unlink-what' a)
   ?:  =(exit ambiguous:yint)
     (queue-phrase 'which-one' a)
-  ?.  (~(controls yint-db db.a) player exit)
+  ?.  (~(controls yint-db db.world.a) player exit)
     (queue-phrase 'no-permission' a)
 
-  =+  type=(~(typeof yint-db db.a) exit)
+  =+  type=(~(typeof yint-db db.world.a) exit)
   ?:  =(type type-exit:yint)
     =.  a  (~(location-set yint-all a) exit nothing:yint)
     (queue-phrase 'unlinked' a)
@@ -192,17 +194,17 @@
   |=  [player=@sd name=tape new-owner=tape]
   ^-  all:yint
   ~&  [%do-chown name new-owner]
-  ?.  (~(is-wizard yint-db db.a) player)
+  ?.  (~(is-wizard yint-db db.world.a) player)
     (queue-phrase 'no-permission' a)
   =+  matcher=(init:yint-match a player name notype:yint)
   =.  matcher  ~(match-everything yint-match matcher)
   =^  thing  a  ~(noisy-match-result yint-match matcher)
   ?:  =(thing nothing:yint)
     a
-  =+  owner=(~(lookup-player yint-db db.a) new-owner)
+  =+  owner=(~(lookup-player yint-db db.world.a) new-owner)
   ?:  =(owner nothing:yint)
     (queue-phrase 'no-player' a)
-  ?:  (~(is-player yint-db db.a) thing)
+  ?:  (~(is-player yint-db db.world.a) thing)
     (queue-phrase 'own-self' a)
   =.  a  (~(owner-set yint-all a) thing owner)
   (queue-phrase 'owner-changed' a)
@@ -216,7 +218,7 @@
   =.  matcher  ~(match-everything yint-match matcher)
   =^  match  a  ~(noisy-match-result yint-match matcher)
   ?:  ?&  !=(match nothing:yint)
-          !(~(controls yint-db db.a) player match)
+          !(~(controls yint-db db.world.a) player match)
       ==
     =.  a  (queue-phrase 'no-permission' a)
     [nothing:yint a]

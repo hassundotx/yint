@@ -123,3 +123,35 @@ findings while reviving Yint as a current Hoon port of MangledMUD.
 - Finding: the `can-link` predicate failed when reading `location:(got what)`.
   A probe showed direct `records.db` lookup builds, so the arm now binds
   `what-record` with `(~(got by records.db) what)` and reads `location.what-record`.
+
+## 2026-05-23: Finish Library Build Revival
+
+- Decision: remove unused matcher/database imports from `help.hoon`. The help
+  screen only queues text; importing the still-failing matcher made help fail
+  for no behavioral reason.
+- Finding: the old flat `all:yint` accesses were the main blocker in
+  `match.hoon`, `look.hoon`, `create.hoon`, `move.hoon`, and `set.hoon`.
+  Reads now use `db.world.a`, `player.io.a`, and `rng.io.a`; DB mutations use a
+  local `new-db` and then rebuild `[world.a(db new-db) io.a]`.
+- Mistake/friction: I first tried `=^ ... new-db ...` without seeding `new-db`.
+  `=^` updates an existing wing, so the build only worked after adding
+  `=/ new-db=database:yint ...` before the mutation.
+- Finding: `q:(trim 1 match-name.m)` failed in the matcher after the code had
+  already proved `match-name.m` was non-empty. Replacing it with the direct
+  tail `t.match-name.m` preserved behavior and built. The same pattern was used
+  for antilock key parsing in `set.hoon`.
+- Finding: `move.hoon` had undeclared dependencies on `yint-db`, `yint-look`,
+  `yint-match`, and `yint-speech`. Adding the explicit imports fixed the final
+  movement-library blocker.
+- Decision/tradeoff: the old Gall app shell used obsolete arms and custom cards.
+  A minimal probe showed that shape fails independently of the command code. I
+  replaced it with a modern `default-agent` scaffold that builds and explicitly
+  defers Sole/import/export runtime wiring. The command libraries remain the
+  translated core; the app protocol still needs a deliberate modern Gall port.
+- Mistake/friction: putting `/+ default-agent` before `/- yint` made even the
+  reduced app scaffold fail. Reordering to import `yint` first fixed the build.
+- Mistake/friction: I tried to sync this Markdown log into the mounted desk, but
+  `%yint` has no `%md` mark. Clay rejected `/docs/translation-log/md`, so the
+  log stays as Git-only documentation for now.
+- Verification: all Yint-owned generators, libraries, surfaces, and the modern
+  app scaffold now build on the mounted `%yint` desk.

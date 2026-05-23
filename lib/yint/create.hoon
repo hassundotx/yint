@@ -13,14 +13,14 @@
     [home:yint a]
   =/  room
     ?:  =((cass room-name) "here")
-      location:(~(got yint-db db.a) player)
+      location:(~(got yint-db db.world.a) player)
     (parse-dbref room-name)
   ~&  [%checking-room room]
   ?:  =(room nothing:yint)
     [nothing:yint (queue-phrase 'not-a-room' a)]
-  ?.  (~(is-room yint-db db.a) room)
+  ?.  (~(is-room yint-db db.world.a) room)
     [nothing:yint (queue-phrase 'not-a-room' a)]
-  ?.  (~(can-link-to yint-db db.a) player room)
+  ?.  (~(can-link-to yint-db db.world.a) player room)
     [nothing:yint (queue-phrase 'bad-link' a)]
   [room a]
 
@@ -28,16 +28,20 @@
 ++  do-open
   |=  [player=@sd direction=tape linkto=tape]
   ^-  all:yint
-  =+  loc=location:(~(got yint-db db.a) player)
+  =+  loc=location:(~(got yint-db db.world.a) player)
   ?:  =(loc nothing:yint)
     a
   ?~  direction
     (queue-phrase 'no-permission' a)
-  =^  can-pay  db.a  (~(payfor yint-db db.a) player exit-cost:yint)
+  =/  new-db=database:yint  db.world.a
+  =^  can-pay  new-db  (~(payfor yint-db new-db) player exit-cost:yint)
+  =.  a  [world.a(db new-db) io.a]
   ?.  can-pay
     (queue-phrase 'sorry-poor-open' a)
-  =^  index  db.a  ~(add-new-record yint-db db.a)
-  =+  loc-exits=exits:(~(got yint-db db.a) loc)
+  =/  new-db=database:yint  db.world.a
+  =^  index  new-db  ~(add-new-record yint-db new-db)
+  =.  a  [world.a(db new-db) io.a]
+  =+  loc-exits=exits:(~(got yint-db db.world.a) loc)
   =/  r  %-  record:yint  :*
     direction           :: name
     ""                  :: description
@@ -55,7 +59,8 @@
     type-exit:yint      :: type
     ""                  :: password
   ==
-  =.  db.a  (~(put yint-db db.a) index r)
+  =/  new-db=database:yint  (~(put yint-db db.world.a) index r)
+  =.  a  [world.a(db new-db) io.a]
   =.  a  (~(exits-set yint-all a) loc index)
   =.  a  (queue-phrase 'opened' a)
   ?~  linkto
@@ -64,7 +69,9 @@
   =^  loc  a  (parse-linkable-room player linkto)
   ?:  =(loc nothing:yint)
     a
-  =^  can-pay  db.a  (~(payfor yint-db db.a) player link-cost:yint)
+  =/  new-db=database:yint  db.world.a
+  =^  can-pay  new-db  (~(payfor yint-db new-db) player link-cost:yint)
+  =.  a  [world.a(db new-db) io.a]
   ?.  can-pay
     (queue-phrase 'too-poor-to-link' a)
   =.  a  (~(location-set yint-all a) index loc)
@@ -74,7 +81,7 @@
 ++  do-link
   |=  [player=@sd name=tape room-name=tape]
   ^-  all:yint
-  =+  loc=location:(~(got yint-db db.a) player)
+  =+  loc=location:(~(got yint-db db.world.a) player)
   ?:  =(nothing:yint loc)
     a
   =^  room  a  (parse-linkable-room player room-name)
@@ -85,25 +92,29 @@
   =^  thing  a  ~(noisy-match-result yint-match matcher)
   ?:  =(thing nothing:yint)
     a
-  =+  type=(~(typeof yint-db db.a) thing)
+  =+  type=(~(typeof yint-db db.world.a) thing)
   ?:  =(type type-exit:yint)
-    ?.  =(location:(~(got yint-db db.a) thing) nothing:yint)
+    ?.  =(location:(~(got yint-db db.world.a) thing) nothing:yint)
       ::  all error cases
-      ?:  (~(controls yint-db db.a) player thing)
-        ?:  (~(is-player yint-db db.a) location:(~(got yint-db db.a) thing))
+      ?:  (~(controls yint-db db.world.a) player thing)
+        ?:  (~(is-player yint-db db.world.a) location:(~(got yint-db db.world.a) thing))
           (queue-phrase 'exit-being-carried' a)
         (queue-phrase 'exit-already-linked' a)
       (queue-phrase 'no-permission' a)
-    ?:  =(player owner:(~(got yint-db db.a) thing))
-      =^  can-pay  db.a  (~(payfor yint-db db.a) player link-cost:yint)
+    ?:  =(player owner:(~(got yint-db db.world.a) thing))
+      =/  new-db=database:yint  db.world.a
+      =^  can-pay  new-db  (~(payfor yint-db new-db) player link-cost:yint)
+      =.  a  [world.a(db new-db) io.a]
       ?.  can-pay
         (queue-phrase 'too-poor-to-link' a)
       (complete-do-link-exit player thing room)
-    =^  can-pay  db.a  (~(payfor yint-db db.a) player (add link-cost:yint exit-cost:yint))
+    =/  new-db=database:yint  db.world.a
+    =^  can-pay  new-db  (~(payfor yint-db new-db) player (add link-cost:yint exit-cost:yint))
+    =.  a  [world.a(db new-db) io.a]
     ?.  can-pay
       (queue-phrase 'cost-two-exit' a)
-    =+  o=owner:(~(got yint-db db.a) thing)
-    =+  old-p=pennies:(~(got yint-db db.a) o)
+    =+  o=owner:(~(got yint-db db.world.a) thing)
+    =+  old-p=pennies:(~(got yint-db db.world.a) o)
     =.  a  (~(pennies-set yint-all a) o (add old-p exit-cost:yint))
     (complete-do-link-exit player thing room)
 
@@ -114,7 +125,7 @@
     (complete-do-link-thing player thing room)
 
   ?:  =(type type-room:yint)
-    ?.  (~(controls yint-db db.a) player thing)
+    ?.  (~(controls yint-db db.world.a) player thing)
       (queue-phrase 'no-permission' a)
     =.  a  (~(location-set yint-all a) thing room)
     (queue-phrase 'drop-to-set' a)
@@ -132,7 +143,7 @@
 ++  complete-do-link-thing
   |=  [player=@sd thing=@sd room=@sd]
   ^-  all:yint
-  ?.  (~(controls yint-db db.a) player thing)
+  ?.  (~(controls yint-db db.world.a) player thing)
     (queue-phrase 'no-permission' a)
   ?:  =(room home:yint)
     (queue-phrase 'no-set-home' a)
@@ -144,7 +155,7 @@
   |=  [player=@sd name=tape in-cost=tape]
   ?:  =(name "")
     (queue-phrase 'create-what' a)
-  ?.  (~(ok-name yint-db db.a) name)
+  ?.  (~(ok-name yint-db db.world.a) name)
     (queue-phrase 'silly-thing-name' a)
   =+  parsed-cost=(rust in-cost dim:ag)
   ?~  parsed-cost
@@ -153,11 +164,15 @@
     ?:  (lth (need parsed-cost) object-cost:yint)
       object-cost:yint
     (need parsed-cost)
-  =^  can-pay  db.a  (~(payfor yint-db db.a) player cost)
+  =/  new-db=database:yint  db.world.a
+  =^  can-pay  new-db  (~(payfor yint-db new-db) player cost)
+  =.  a  [world.a(db new-db) io.a]
   ?.  can-pay
     (queue-phrase 'sorry-poor' a)
-  =^  index  db.a  ~(add-new-record yint-db db.a)
-  =+  player-r=(~(got yint-db db.a) player)
+  =/  new-db=database:yint  db.world.a
+  =^  index  new-db  ~(add-new-record yint-db new-db)
+  =.  a  [world.a(db new-db) io.a]
+  =+  player-r=(~(got yint-db db.world.a) player)
   =/  pennies=@sd
     =+  base=(endow cost)
     ?:  (gth base max-object-endowment:yint)
@@ -165,7 +180,7 @@
     (sun:si base)
   =/  exits=@sd
     ?:  ?&  !=(location:player-r nothing:yint)
-            (~(can-link-to yint-db db.a) player location:player-r)
+            (~(can-link-to yint-db db.world.a) player location:player-r)
         ==
       location:player-r
     exits:player-r
@@ -199,7 +214,8 @@
   ::   pennies   pennies
   ::   flags     type-thing:yint
   :: ==
-  =.  db.a  (~(put yint-db db.a) index r)
+  =/  new-db=database:yint  (~(put yint-db db.world.a) index r)
+  =.  a  [world.a(db new-db) io.a]
   =.  a  (~(contents-set yint-all a) player index)
   (queue-phrase 'created' a)
 
@@ -217,12 +233,16 @@
   ^-  all:yint
   ?:  =(name "")
     (queue-phrase 'dig-what' a)
-  ?.  (~(ok-name yint-db db.a) name)
+  ?.  (~(ok-name yint-db db.world.a) name)
     (queue-phrase 'silly-room-name' a)
-  =^  can-pay  db.a  (~(payfor yint-db db.a) player room-cost:yint)
+  =/  new-db=database:yint  db.world.a
+  =^  can-pay  new-db  (~(payfor yint-db new-db) player room-cost:yint)
+  =.  a  [world.a(db new-db) io.a]
   ?.  can-pay
     (queue-phrase 'sorry-poor-dig' a)
-  =^  index  db.a  ~(add-new-record yint-db db.a)
+  =/  new-db=database:yint  db.world.a
+  =^  index  new-db  ~(add-new-record yint-db new-db)
+  =.  a  [world.a(db new-db) io.a]
   =/  r  %-  record:yint  :*
     name                :: name
     ""                  :: description
@@ -240,6 +260,7 @@
     type-room:yint      :: type
     ""                  :: password
   ==
-  =.  db.a  (~(put yint-db db.a) index r)
+  =/  new-db=database:yint  (~(put yint-db db.world.a) index r)
+  =.  a  [world.a(db new-db) io.a]
   (queue-phrase-with 'created-room' [name (print-ref index) ~] a)
 --

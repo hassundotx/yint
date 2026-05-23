@@ -1,6 +1,6 @@
 /-  yint
-/+  yint-all, yint-db, yint-match, yint-util
-[[. yint-util] match=yint-match]
+/+  yint-util
+[. yint-util]
 |_  a=all:yint
 
 :: Quickly putting together a help screen.
