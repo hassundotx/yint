@@ -2,7 +2,7 @@
 ::  super simple console app
 ::
 
-/?    314
+/?    310
 /-    yint
 /+    sole, yint-create, yint-db, yint-look, yint-help, yint-move, yint-set, yint-speech, yint-util
 [. sole yint-util]
@@ -200,14 +200,14 @@
   -.a      :: no change
 ::
 ++  build-notification
-  |=  [p=@sd q=(list sole-effect:sole)]
+  |=  [p=@sd q=(list sole-effect)]
   ^-  (list move)
   =+  b=(~(get by player-out.w) p)                  ::  ensure player logged in
   ?~  b
     ~
   [i=[(need b) %diff %sole-effect mor+q] t=~]
 ++  make-notification-list
-  |=  a=(map @sd (list sole-effect:sole))
+  |=  a=(map @sd (list sole-effect))
   ^-  (list move)
   =|  out=(list move)
   ?~  a

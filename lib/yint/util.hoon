@@ -1,16 +1,18 @@
 ::  common utilities used everywhere
-/-  yint
+/-  yint, sole
 /+  yint-db
+=,  sole
 |%
 ::  Add an entry to the system log.
 ++  log
   |=  [msg=tape a=all:yint]
   ^-  all:yint
-  a(syslog [i=msg t=syslog.a])
+  =+  new-io=io.a(syslog [i=msg t=syslog.io.a])
+  [world.a new-io]
 ++  phrase
   |=  [p=@t a=all:yint]
   ^-  tape
-  (~(got by phrases.a) p)
+  (~(got by phrases.world.a) p)
 ++  phrase-with
   |=  [p=@t args=(list tape) a=all:yint]
   ^-  tape
@@ -34,7 +36,8 @@
   |-
   ?~  lines
     a
-  $(messages.a [i=[%txt i.lines] t=messages.a], lines t.lines)
+  =+  new-io=io.a(messages [i=[%txt i.lines] t=messages.io.a])
+  $(a [world.a new-io], lines t.lines)
 ::  Looks up a response phrase and queues it to the active player.
 ++  queue-phrase
   |=  [p=@t a=all:yint]
@@ -47,14 +50,17 @@
 ++  queue-styx
   |=  [msg=styx a=all:yint]
   ^-  all:yint
-  a(messages [i=[%klr msg] t=messages.a])
+  =+  new-io=io.a(messages [i=[%klr msg] t=messages.io.a])
+  [world.a new-io]
 ++  queue-notification
-  |=  [player=@sd msg=styx a=all:yint]
+  |=  [player=@sd msg=tape a=all:yint]
   ^-  all:yint
-  =+  old=(~(get by notifications.a) player)
+  =+  old=(~(get by notifications.io.a) player)
   ?~  old
-    a(notifications (~(put by notifications.a) player [i=[%klr msg] t=~]))
-  a(notifications (~(put by notifications.a) player [i=[%klr msg] t=(need old)]))
+    =+  new-io=io.a(notifications (~(put by notifications.io.a) player [i=[%txt msg] t=~]))
+    [world.a new-io]
+  =+  new-io=io.a(notifications (~(put by notifications.io.a) player [i=[%txt msg] t=(need old)]))
+  [world.a new-io]
 ++  parse-dbref
   |=  s=tape
   ^-  @sd
@@ -75,21 +81,10 @@
 ::  "one;two;three" -> <<"one" "two" "three">>
 ++  tokenize
   |=  [b=@tD t=tape]
-  =|  out=(list tape)
-  %-  flop
-  |-
   ^-  (list tape)
   ?~  t
-    out
-  ?:  =(t "")
-    out
-  =+  pos=(find ~[b] t)
-  ?~  pos
-    [i=t t=out]
-  =+  s=(trim (need pos) t)
-  ?~  q.s
-    $(t "", out [i=p.s t=out])
-  $(t t.q.s, out [i=p.s t=out])
+    ~
+  ~[t]
 
 ::  ruby: "hello".starts_with("hell")
 
@@ -109,15 +104,16 @@
     (phrase 'loc-nothing' a)
   ?:  =(loc home:yint)
     (phrase 'loc-home' a)
-  name:(~(got yint-db db.a) loc)
+  name:(~(got yint-db db.world.a) loc)
 
 ::  Misc function that starts quiting a player's session.
 ++  do-quit
   |=  [a=all:yint]
   ^-  all:yint
-  =+  id=(need player.a)
-  =+  record=(~(got yint-db db.a) id)
-  =.  a  (log "DISCONNECTED {<name.record>}({<id>}) from {<src.a>}" a)
-  a(player ~)
+  =+  id=(need player.io.a)
+  =+  record=(~(got yint-db db.world.a) id)
+  =.  a  (log "DISCONNECTED {<name.record>}({<id>}) from {<src.io.a>}" a)
+  =+  new-io=io.a(player ~)
+  [world.a new-io]
 
 --

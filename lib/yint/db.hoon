@@ -317,8 +317,8 @@
   |=  [who=@sd where=@sd]
   ^-  ?
   ?&
-    (gte:si where 0)
-    (lth:si where next.db)
+    (gte where 0)
+    (lth where next.db)
     (is-room where)
     ?|((controls who where) (is-link-ok where))
   ==
@@ -359,8 +359,9 @@
 ++  can-link
   |=  [who=@sd what=@sd]
   ^-  ?
+  =+  what-record=(~(got by records.db) what)
   ?|
-    ?&((is-exit what) =(location:(got what) nothing:yint))
+    ?&((is-exit what) =(location.what-record nothing:yint))
     (controls who what)
   ==
 

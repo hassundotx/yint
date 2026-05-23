@@ -1,3 +1,3 @@
 :-  %say
-|=  [^ [arg=path $~] ^]
+|=  [^ [[arg=path ~] ~]]
 [%yint-load-phrases arg]

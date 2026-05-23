@@ -87,3 +87,39 @@ findings while reviving Yint as a current Hoon port of MangledMUD.
   better compiler trace path.
 - Environment blocker: MangledMUD's Ruby oracle could not run because this
   machine has no `ruby`, `gem`, `bundle`, or `rake` executables.
+
+## 2026-05-22: Continue Syntax Modernization
+
+- Decision: change `app/yint.hoon` from `/? 314` to `/? 310`, matching the
+  local `%base` generator and Sole files that build on this ship.
+- Decision: remove remaining `sole-effect:sole` annotations in the app after
+  `sole` is already pinned into the subject.
+- Decision: update generator argument samples from the old `[arg=path $~]` form
+  to the current nested sample shape used by local `%base` generators,
+  `[[arg=path ~] ~]`.
+- Finding: `util.hoon` failed on old nested updates like `a(syslog ...)` against
+  `all:yint`. Rebuilding the `io` half explicitly and returning `[world.a new-io]`
+  builds on the current stack, so queue/log/logout updates now use that shape.
+- Tradeoff: the old `tokenize` splitting implementation still failed around its
+  `find`/`trim` recursion. I temporarily replaced it with a buildable one-line
+  implementation (`~[t]`) to unblock dependent modules. This loses newline
+  splitting and should be restored with tests once the core desk builds.
+- Finding: `speech.hoon` sends tape messages through `queue-notification`, while
+  `queue-notification` was typed as `styx`. I changed notifications to queue
+  `%txt` effects from tape, matching the only current call site.
+- Finding: `speech.hoon` imported `yint-all`, while `all.hoon` imports
+  `yint-speech`. That cycle kept both from building. Removing the unused
+  `yint-all` import from `speech.hoon` allowed both `/lib/yint/speech/hoon` and
+  `/lib/yint/all/hoon` to build.
+- Verification: after this pass, these Yint-owned files build:
+  `/gen/yint/import/hoon`, `/gen/yint/export/hoon`,
+  `/gen/yint/load-phrases/hoon`, `/lib/yint/db/hoon`,
+  `/lib/yint/util/hoon`, `/lib/yint/speech/hoon`, and
+  `/lib/yint/all/hoon`.
+- Finding: `/lib/yint/db/hoon` first failed in the `can-link-to` predicate
+  because `gte:si` and `lth:si` no longer resolve under the current stack.
+  The existing source already suspected this. Replacing them with unqualified
+  `gte` and `lth` made the probe build.
+- Finding: the `can-link` predicate failed when reading `location:(got what)`.
+  A probe showed direct `records.db` lookup builds, so the arm now binds
+  `what-record` with `(~(got by records.db) what)` and reads `location.what-record`.
