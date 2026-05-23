@@ -155,3 +155,24 @@ findings while reviving Yint as a current Hoon port of MangledMUD.
   log stays as Git-only documentation for now.
 - Verification: all Yint-owned generators, libraries, surfaces, and the modern
   app scaffold now build on the mounted `%yint` desk.
+
+## 2026-05-23: Restore Non-Terminal App Pokes
+
+- Decision: handle the generator output as a `%noun` poke containing a
+  `yint-poke` tagged union. The `%say` generators emit nouns like
+  `[%yint-import path]`, so the app now decodes those under `+on-poke` rather
+  than expecting custom marks.
+- Mistake/friction: adding top-level helper arms to the app made the
+  `^- agent:gall` cast fail. I moved the import/export/load helper arms inside
+  `+on-poke` with `|^`, keeping the exposed core limited to Gall interface arms.
+- Finding: the old `om:jo` JSON parser path no longer builds in the app. Using
+  `=, dejs-soft:format` and `((om sa) json)` builds for loading phrase maps.
+- Finding: nested state updates in the modern Gall shell need to update the
+  `state` sample explicitly, e.g. `this(state state(world ...))`; the shorter
+  `this(world.state...)` form failed.
+- Decision/tradeoff: `yint-import` and `yint-load-phrases` now update app state.
+  `yint-export` still logs `%export-deferred` because the old `%info /jamfile`
+  card needs a modern Clay write-card port.
+- Decision: add read-only scries under `/x/world`, `/x/db`, `/x/phrases`, and
+  `/x/dump`. `/x/dump` returns the serialized database as a `%noun`, which gives
+  a buildable inspection/export path while the Clay write card is deferred.
