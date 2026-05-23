@@ -176,3 +176,23 @@ findings while reviving Yint as a current Hoon port of MangledMUD.
 - Decision: add read-only scries under `/x/world`, `/x/db`, `/x/phrases`, and
   `/x/dump`. `/x/dump` returns the serialized database as a `%noun`, which gives
   a buildable inspection/export path while the Clay write card is deferred.
+
+## 2026-05-23: Add Non-Sole Command Poke
+
+- Decision: add `%yint-command`, a noun poke shaped as
+  `[%yint-command player=@sd line=tape entropy=@u]`. This is not the final
+  terminal UI, but it gives Gall a buildable path into the translated command
+  libraries for an already-known player id.
+- Finding: constructing the player unit for `io:yint` must use `[~ player]`.
+  My first attempt used backtick unit syntax and failed to build in this sample.
+- Finding: keeping the last command IO in state works if it is a unit:
+  `last-io=(unit io:yint)`. A bare `io:yint` in persisted state failed earlier,
+  likely because its default/bunt path is awkward in Gall state.
+- Decision/tradeoff: the dispatcher currently supports exact commands and
+  `say`, but not TinyMUD abbreviation matching or the leading `"`/`:` shorthand.
+  The quote/colon shorthand failed when reintroduced and needs a smaller parse
+  probe.
+- Verification: `/app/yint/hoon` builds, `%yint` revives, and a noun poke
+  `[%yint-command --0 "help" 1]` succeeds without crashing. MCP's JSON scry
+  helper still cannot read the noun peek paths, so output inspection remains a
+  manual/Dojo scry task for now.
